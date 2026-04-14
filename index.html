@@ -108,6 +108,63 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
 .path-label{display:inline-block;font-size:10px;letter-spacing:1px;padding:2px 8px;text-transform:uppercase;border:1px solid;margin-right:6px}
 .pl-opt{color:var(--green2);border-color:var(--green)}
 .pl-noe{color:var(--blue2);border-color:var(--blue)}
+
+@media(max-width:700px){
+  .app{padding:10px}
+  h1{font-size:16px;letter-spacing:2px}
+  .hdr{padding:10px 12px;flex-wrap:wrap;gap:8px}
+  .hdr>div:last-child{display:flex;flex-wrap:wrap;gap:6px}
+  .hdr>div:last-child .btn{font-size:10px;padding:4px 8px}
+  .tabs{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tb{padding:8px 12px;font-size:9px;white-space:nowrap}
+  /* Mount card stat grid - collapse to 3-col on mobile */
+  .sg{grid-template-columns:80px 1fr 1fr 1fr;gap:0}
+  /* Hide the Need column header and cells on mobile */
+  .sg .ch:last-child{display:none}
+  .snd{display:none}
+  .si{font-size:12px;padding:4px 3px}
+  .sl{font-size:10px;padding:4px 4px}
+  .ch{font-size:9px;padding:3px 3px}
+  /* Stamina row stack on mobile */
+  .star{flex-wrap:wrap;gap:6px}
+  .stbar{min-width:100%;order:5}
+  .stinfo{order:6;min-width:auto}
+  /* Optimizer metrics - 3 cols on mobile instead of 6 */
+  .mrow{flex-wrap:wrap}
+  .mbox{min-width:calc(33.3% - 1px);flex:1 1 calc(33.3% - 1px)}
+  .mbox .mv{font-size:14px}
+  /* Result panels stack vertically */
+  .rs{flex-direction:column}
+  .rp{min-width:0;width:100%}
+  /* Alert grid - stack on mobile */
+  .ag2{grid-template-columns:1fr}
+  /* Feed step icon size */
+  .fnum{width:18px;height:18px;font-size:9px}
+  /* Breeding modal - stack columns */
+  .bsg{grid-template-columns:1fr}
+  .md{padding:14px}
+  /* Breeding log table - scroll */
+  #blo{overflow-x:auto}
+  /* Level up rows */
+  .lus{width:65px}
+  .lum{min-width:80px;font-size:9px}
+  /* Path label + header */
+  .rph{flex-direction:column;align-items:flex-start;gap:4px}
+  /* Tab content padding */
+  .rpb{padding:8px 10px}
+  /* Optimizer select row */
+  #tab-optimizer>div:first-child{flex-wrap:wrap}
+  select{font-size:11px;max-width:100%}
+  /* Scrollable result panels */
+  .sy{max-height:320px}
+}
+@media(max-width:420px){
+  h1{font-size:13px;letter-spacing:1px}
+  .hdr-sub{display:none}
+  .mbox{min-width:calc(50% - 1px);flex:1 1 calc(50% - 1px)}
+  .sg{grid-template-columns:70px 1fr 1fr 1fr}
+  .si{font-size:11px;padding:4px 2px}
+}
 </style>
 </head>
 <body>
@@ -115,7 +172,7 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
 <div class="hdr">
   <div><h1>Mount Optimizer</h1><div class="hdr-sub">Feed Path · Level Strategy · Breeding Log</div></div>
   <div style="display:flex;gap:7px;align-items:center">
-    <button class="btn" onclick="exportData()">Export JSON</button>
+    <button class="btn" onclick="openExportModal()">Export JSON</button>
     <button class="btn" onclick="importData()">Import JSON</button>
     <button class="btn btnp" onclick="addMount()">+ Add Mount</button>
   </div>
@@ -144,6 +201,33 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
 </div>
 
 
+
+
+<!-- EXPORT MODAL -->
+<div class="mo" id="export-mo">
+<div class="md" style="width:700px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <h2>Export Data</h2>
+    <button class="btn btnsm" onclick="closeExportModal()">✕ Close</button>
+  </div>
+  <div style="font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.6">
+    Your data is ready. Preview below. Download saves to your device. Submit shares your breeding log publicly for community research — mount data is not included in submissions.
+  </div>
+  <div style="position:relative;margin-bottom:12px">
+    <div style="font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">JSON Preview</div>
+    <pre id="export-preview" style="background:var(--bg3);border:1px solid var(--border);padding:12px;font-size:10px;color:var(--text2);max-height:260px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0;font-family:var(--mono);line-height:1.5"></pre>
+  </div>
+  <div id="export-submit-status" style="display:none;padding:8px 10px;font-size:11px;margin-bottom:10px;border-left:3px solid var(--green2);background:rgba(74,140,92,0.08);color:var(--green2)"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <button class="btn btnp" onclick="downloadExport()" style="flex:1">↓ Download my data (JSON)</button>
+    <button class="btn" id="submit-btn" onclick="submitToPublic()" style="flex:1;border-color:var(--blue);color:var(--blue2)">↑ Submit breeding log publicly</button>
+  </div>
+  <button class="btn" id="dl-dataset-btn" onclick="downloadDataset()" style="width:100%;border-color:var(--green);color:var(--green2)">↓ Download full community dataset (CSV)</button>
+  <div style="margin-top:8px;font-size:10px;color:var(--text3)">
+    Public submissions include only breeding records (no mount names or personal data).
+  </div>
+</div>
+</div>
 
 <!-- BREEDING MODAL -->
 <div class="mo" id="bm">
@@ -184,6 +268,10 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
 </div>
 
 <script>
+const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwAlgCy2xsYPp9yUp5Q6wBV9H2zqg-E9FL0AhMEvNxNqFQMSl0UwVwJdMZLuCqOAo-TFg/exec';
+// Paste your Google Sheet published-as-CSV URL here
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9BiGD4lkQnk90aQh-3aDpzaN2GoFo5Wv0vidpQBX0IkMSgGvUhzQGCOyYL16lIB34odzNlf4-5YJ/pub?gid=0&single=true&output=csv';
+
 const SN=['Speed','Acceleration','Altitude','Energy','Handling','Toughness','Boost','Training'];
 const FT={
   1:{'Wheat String':[2,0,0,0,4,0,6,0],'Wheat Grains':[8,0,4,0,0,0,0,0],'Gudgeon Meat':[0,4,0,8,0,0,0,0],'Gudgeon Oil':[0,0,4,0,6,0,0,2],'Copper Gem':[4,0,0,2,0,0,0,6],'Copper Ingot':[0,0,0,4,0,8,0,0],'Oak Paper':[0,0,8,0,0,0,4,0],'Oak Wood':[2,6,0,0,0,4,0,0]},
@@ -473,6 +561,12 @@ function runOpt(){
     </div>`;
 }
 
+// Close export modal on overlay click
+document.addEventListener('DOMContentLoaded',()=>{
+  const em=g('export-mo');if(em)em.addEventListener('click',e=>{if(e.target===em)closeExportModal();});
+  if(!SUBMIT_URL){const sb=g('submit-btn');if(sb)sb.style.display='none';}
+});
+
 function switchTab(name,btn){
   document.querySelectorAll('.tb').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tc').forEach(c=>c.classList.remove('active'));
@@ -481,13 +575,62 @@ function switchTab(name,btn){
   if(name==='optimizer')updateSel();
 }
 
-function exportData(){
+let _exportJson='';
+
+function openExportModal(){
   const d={mounts:mounts.map(m=>getMD(m.id)),breedLog,exported:new Date().toISOString()};
-  const json=JSON.stringify(d,null,2);
-  const uri='data:text/plain;charset=utf-8,'+encodeURIComponent(json);
+  _exportJson=JSON.stringify(d,null,2);
+  g('export-preview').textContent=_exportJson;
+  g('export-submit-status').style.display='none';
+  const sb=g('submit-btn');
+  if(sb){sb.disabled=false;sb.style.opacity='1';sb.textContent='↑ Submit breeding log publicly';}
+  const db=g('dl-dataset-btn');
+  if(db){db.style.display=SHEET_CSV_URL?'block':'none';db.disabled=false;db.textContent='↓ Download full community dataset (CSV)';}
+  g('export-mo').classList.add('open');
+}
+function closeExportModal(){g('export-mo').classList.remove('open');}
+
+function downloadExport(){
+  const uri='data:text/plain;charset=utf-8,'+encodeURIComponent(_exportJson);
   const a=document.createElement('a');
   a.href=uri;a.download='mount-data.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function downloadDataset(){
+  if(!SHEET_CSV_URL){showExportStatus('No dataset URL configured.','bad');return;}
+  window.open(SHEET_CSV_URL,'_blank');
+}
+
+async function submitToPublic(){
+  if(!breedLog.length){showExportStatus('No breeding records to submit.','warn');return;}
+  if(!SUBMIT_URL){showExportStatus('No submission endpoint configured.','bad');return;}
+  const sb=g('submit-btn');
+  if(sb){sb.disabled=true;sb.textContent='Submitting…';}
+  try{
+    const payload=encodeURIComponent(JSON.stringify({breedLog,submitted:new Date().toISOString()}));
+    await fetch(SUBMIT_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'data='+payload
+    });
+    // no-cors response is opaque — if fetch didn't throw, the request landed
+    showExportStatus('Submitted '+breedLog.length+' record'+(breedLog.length!==1?'s':'')+' — thank you!','good');
+    if(sb){sb.textContent='✓ Submitted';sb.style.opacity='0.6';}
+  }catch(err){
+    showExportStatus('Submission failed: '+err.message,'bad');
+    if(sb){sb.disabled=false;sb.textContent='↑ Submit breeding log publicly';}
+  }
+}
+
+function showExportStatus(msg,type){
+  const el=g('export-submit-status');
+  el.style.display='block';
+  el.textContent=msg;
+  el.style.borderLeftColor=type==='good'?'var(--green2)':type==='bad'?'var(--red2)':'var(--amber)';
+  el.style.background=type==='good'?'rgba(74,140,92,0.08)':type==='bad'?'rgba(140,58,58,0.08)':'var(--ag)';
+  el.style.color=type==='good'?'var(--green2)':type==='bad'?'var(--red2)':'var(--amber2)';
 }
 
 function importData(){
