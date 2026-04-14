@@ -165,6 +165,11 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
   .si{font-size:10px;padding:3px 2px}
 }
 
+
+.rank-divider{background:var(--bg4);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:6px 10px;display:flex;align-items:center;gap:8px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin:2px 0}
+.rank-divider.refill{border-left:3px solid var(--amber);background:var(--ag);color:var(--amber2)}
+.rank-divider .elapsed{margin-left:auto;color:var(--amber-dim)}
+.rank-icon{display:inline-block;height:14px;width:auto;vertical-align:middle;image-rendering:pixelated}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 </style>
 </head>
@@ -188,6 +193,14 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
   <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
     <label style="color:var(--text2);font-size:10px;letter-spacing:1px;text-transform:uppercase">Mount:</label>
     <select id="os"><option value="">— select —</option></select>
+    <label style="color:var(--text2);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-left:6px">Rank:</label>
+    <select id="rank-sel" style="min-width:0">
+      <option value="2">No rank (2 slots)</option>
+      <option value="3">VIP+ (3 slots)</option>
+      <option value="4">Hero+ (4 slots)</option>
+      <option value="5">Champion (5 slots)</option>
+      <option value="7">Silverbull (7 slots)</option>
+    </select>
     <button class="btn btnp" id="run-opt-btn" onclick="runOpt()">Run Optimizer</button>
   </div>
   <div id="oo"><div class="empty"><div class="ei">◈</div>Select a mount and run the optimizer.</div></div>
@@ -480,15 +493,48 @@ function updateSel(){
     mounts.map(m=>`<option value="${m.id}" ${m.id==cur?'selected':''}>${g(`${m.id}-nm`)?.value||`Mount ${m.id}`}</option>`).join('');
 }
 
-function stepsHTML(steps){
-  return steps.map((s,i)=>{
+const RANK_ICONS={
+  2:'<span style="font-size:10px;color:var(--text3)">No Rank</span>',
+  3:'<img class="rank-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgLTAuNSAyOSA5IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPgo8bWV0YWRhdGE+TWFkZSB3aXRoIFBpeGVscyB0byBTdmcgaHR0cHM6Ly9jb2RlcGVuLmlvL3Noc2hhdy9wZW4vWGJ4dk5qPC9tZXRhZGF0YT4KPHBhdGggc3Ryb2tlPSIjNDQ2ZGJiIiBkPSJNMSAwaDI4TTAgMWgzTTYgMWgxTTggMWgxTTExIDFoMU0xNiAxaDVNMjIgMWg3TTAgMmgyTTE3IDJoM00yMyAyaDVNMCAzaDJNMTggM2gyTTIzIDNoNE0wIDRoMk0yNSA0aDFNMCA1aDJNMTcgNWgzTTIzIDVoNE0wIDZoM00xNiA2aDRNMjMgNmg1TTAgN2g0TTcgN2gyTTExIDdoMU0xNSA3aDZNMjIgN2g3TTEgOGgyOCIgLz4KPHBhdGggc3Ryb2tlPSIjMjAyYjUyIiBkPSJNMyAxaDNNNyAxaDFNOSAxaDJNMTIgMWg0TTIxIDFoMU0yIDJoMU02IDJoMU0xNiAyaDFNMjIgMmgxTTIgM2gxTTYgM2gxTTE1IDNoMU0xNyAzaDFNMjIgM2gxTTIgNGgxTTYgNGgxTTE1IDRoMU0xNyA0aDFNMjQgNGgxTTIgNWgxTTggNWgxTTE2IDVoMU0yMCA1aDFNMjIgNWgxTTMgNmgxTTcgNmgyTTE1IDZoMU0yMiA2aDFNNCA3aDNNOSA3aDJNMTIgN2gzTTIxIDdoMSIgLz4KPHBhdGggc3Ryb2tlPSIjY2NkNGZmIiBkPSJNMyAyaDJNNyAyaDFNOSAyaDJNMTIgMmg0TTIxIDJoMSIgLz4KPHBhdGggc3Ryb2tlPSIjMzU0OThmIiBkPSJNNSAyaDFNOCAyaDFNMTEgMmgxTTIwIDJoMU01IDNoMU04IDNoMU0xMSAzaDFNMTQgM2gxTTIwIDNoMU01IDRoMU04IDRoMU0xMSA0aDFNMTQgNGgxTTE4IDRoMU03IDVoMU0xMSA1aDFNNiA2aDFNMTEgNmgxTTE0IDZoMU0yMCA2aDEiIC8+CjxwYXRoIHN0cm9rZT0iIzhhOTllZSIgZD0iTTMgM2gyTTcgM2gxTTkgM2gyTTEyIDNoMk0xNiAzaDFNMjEgM2gxTTMgNGgyTTcgNGgxTTkgNGgyTTEyIDRoMk0xNiA0aDFNMTkgNGg1TTMgNWg0TTkgNWgyTTEyIDVoNE0yMSA1aDFNNCA2aDJNOSA2aDJNMTIgNmgyTTIxIDZoMSIgLz4KPC9zdmc+" alt="VIP+">',
+  4:'<img class="rank-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgLTAuNSAzOCA5IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPgo8bWV0YWRhdGE+TWFkZSB3aXRoIFBpeGVscyB0byBTdmcgaHR0cHM6Ly9jb2RlcGVuLmlvL3Noc2hhdy9wZW4vWGJ4dk5qPC9tZXRhZGF0YT4KPHBhdGggc3Ryb2tlPSIjZDgzYjhlIiBkPSJNMSAwaDM3TTAgMWgzTTYgMWgxTTE0IDFoMU0yMCAxaDJNMjUgMWg1TTMxIDFoN00wIDJoMk0yNiAyaDNNMzIgMmg1TTAgM2gyTTI3IDNoMk0zMiAzaDRNMCA0aDJNMzQgNGgxTTAgNWgyTTI3IDVoMk0zMiA1aDRNMCA2aDJNMjYgNmgzTTMyIDZoNU0wIDdoM002IDdoMU0xNCA3aDFNMTggN2gxTTIxIDdoMU0yNSA3aDVNMzEgN2g3TTEgOGgzNyIgLz4KPHBhdGggc3Ryb2tlPSIjNWMwMTFmIiBkPSJNMyAxaDNNNyAxaDdNMTUgMWg1TTIyIDFoM00zMCAxaDFNMiAyaDFNNiAyaDFNMjAgMmgyTTI1IDJoMU0zMSAyaDFNMiAzaDFNNiAzaDFNMTIgM2gzTTE4IDNoMU0yNCAzaDFNMjYgM2gxTTMxIDNoMU0yIDRoMU0xNCA0aDFNMTggNGgxTTI0IDRoMU0yNiA0aDFNMzMgNGgxTTIgNWgxTTYgNWgxTTEyIDVoM00yMCA1aDFNMjQgNWgxTTI2IDVoMU0zMSA1aDFNMiA2aDFNNiA2aDFNMTggNmgxTTIxIDZoMU0yNSA2aDFNMzEgNmgxTTMgN2gzTTcgN2g3TTE1IDdoM00xOSA3aDJNMjIgN2gzTTMwIDdoMSIgLz4KPHBhdGggc3Ryb2tlPSIjZjhhMmNlIiBkPSJNMyAyaDJNNyAyaDFNOSAyaDVNMTUgMmg0TTIyIDJoM00zMCAyaDEiIC8+CjxwYXRoIHN0cm9rZT0iIzliMDc1OSIgZD0iTTUgMmgxTTggMmgxTTE0IDJoMU0xOSAyaDFNMjkgMmgxTTUgM2gxTTggM2gxTTExIDNoMU0xNyAzaDFNMjAgM2gxTTIzIDNoMU0yOSAzaDFNOCA0aDFNMTMgNGgxTTE3IDRoMU0yMCA0aDFNMjMgNGgxTTI3IDRoMU01IDVoMU04IDVoMU0xMSA1aDFNMTkgNWgxTTIzIDVoMU0yOSA1aDFNNSA2aDFNOCA2aDFNMTQgNmgxTTE3IDZoMU0yMCA2aDFNMjkgNmgxIiAvPgo8cGF0aCBzdHJva2U9IiNlYzdhYjUiIGQ9Ik0zIDNoMk03IDNoMU05IDNoMk0xNSAzaDJNMTkgM2gxTTIxIDNoMk0yNSAzaDFNMzAgM2gxTTMgNGg1TTkgNGg0TTE1IDRoMk0xOSA0aDFNMjEgNGgyTTI1IDRoMU0yOCA0aDVNMyA1aDJNNyA1aDFNOSA1aDJNMTUgNWg0TTIxIDVoMk0yNSA1aDFNMzAgNWgxTTMgNmgyTTcgNmgxTTkgNmg1TTE1IDZoMk0xOSA2aDFNMjIgNmgzTTMwIDZoMSIgLz4KPC9zdmc+" alt="Hero+">',
+  5:'<img class="rank-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgLTAuNSA1MyA5IiBzaGFwZS1yZW5kZXJpbmc9ImNyaXNwRWRnZXMiPgo8bWV0YWRhdGE+TWFkZSB3aXRoIFBpeGVscyB0byBTdmcgaHR0cHM6Ly9jb2RlcGVuLmlvL3Noc2hhdy9wZW4vWGJ4dk5qPC9tZXRhZGF0YT4KPHBhdGggc3Ryb2tlPSIjZmZhYTAwIiBkPSJNMSAwaDUyTTAgMWg0TTggMWgxTTExIDFoMk0xNSAxaDFNMTkgMWgyTTIzIDFoM00zMiAxaDJNMzcgMWgxTTQyIDFoMU00NiAxaDFNNDkgMWg0TTAgMmgzTTI0IDJoMU00OSAyaDNNMCAzaDJNNDkgM2gyTTAgNGgyTTQ5IDRoMU0wIDVoMk00OSA1aDJNMCA2aDNNNDkgNmgzTTAgN2g0TTggN2gxTTEyIDdoMU0xOCA3aDFNMjQgN2gyTTMxIDdoM00zNyA3aDFNNDIgN2gxTTQ2IDdoMU00OSA3aDRNMSA4aDUyIiAvPgo8cGF0aCBzdHJva2U9IiM0MDI5MDAiIGQ9Ik00IDFoNE05IDFoMk0xMyAxaDJNMTYgMWgzTTIxIDFoMk0yNiAxaDZNMzQgMWgzTTM4IDFoNE00MyAxaDNNNDcgMWgyTTMgMmgxTTEyIDJoMU0xNSAyaDFNMjAgMmgxTTIzIDJoMU0yNSAyaDFNMzMgMmgxTTM3IDJoMU00MiAyaDFNNDYgMmgxTTQ4IDJoMU0yIDNoMU02IDNoMU0xMiAzaDFNMTggM2gxTTMxIDNoMU00MCAzaDFNNDggM2gxTTIgNGgxTTYgNGgzTTE4IDRoMU0zMSA0aDFNNDAgNGgxTTQ4IDRoMU0yIDVoMU02IDVoMU0xMiA1aDFNMzMgNWgxTTQwIDVoMU00OCA1aDFNMyA2aDFNMTIgNmgxTTE4IDZoMU0yNCA2aDJNMzEgNmgzTTM3IDZoMU00MiA2aDFNNDYgNmgxTTQ4IDZoMU00IDdoNE05IDdoM00xMyA3aDVNMTkgN2g1TTI2IDdoNU0zNCA3aDNNMzggN2g0TTQzIDdoM000NyA3aDIiIC8+CjxwYXRoIHN0cm9rZT0iI2YzZmZiMCIgZD0iTTQgMmg0TTkgMmgyTTEzIDJoMU0xNiAyaDNNMjEgMmgyTTI2IDJoMU0yOCAyaDRNMzQgMmgyTTM4IDJoM000MyAyaDJNNDcgMmgxIiAvPgo8cGF0aCBzdHJva2U9IiM4MDU1MDAiIGQ9Ik04IDJoMU0xMSAyaDFNMTQgMmgxTTE5IDJoMU0yNyAyaDFNMzIgMmgxTTM2IDJoMU00MSAyaDFNNDUgMmgxTTUgM2gxTTggM2gxTTExIDNoMU0xNCAzaDFNMTcgM2gxTTIwIDNoMU0yNCAzaDFNMjcgM2gxTTMwIDNoMU0zMyAzaDFNMzYgM2gxTTM5IDNoMU00MiAzaDFNNDYgM2gxTTUgNGgxTTE0IDRoMU0xNyA0aDFNMjAgNGgxTTI3IDRoMU0zMCA0aDFNMzMgNGgxTTM2IDRoMU0zOSA0aDFNNDIgNGgxTTUgNWgxTTggNWgxTTExIDVoMU0xNCA1aDFNMjAgNWgxTTIzIDVoMU0yNSA1aDFNMjcgNWgxTTMyIDVoMU0zNiA1aDFNMzkgNWgxTTQyIDVoMU00NSA1aDFNOCA2aDFNMTEgNmgxTTE0IDZoMU0xNyA2aDFNMjAgNmgxTTIzIDZoMU0yNyA2aDFNMzAgNmgxTTM2IDZoMU00MSA2aDFNNDUgNmgxIiAvPgo8cGF0aCBzdHJva2U9IiNmZmU2MDAiIGQ9Ik0zIDNoMk03IDNoMU05IDNoMk0xMyAzaDFNMTUgM2gyTTE5IDNoMU0yMSAzaDNNMjUgM2gyTTI4IDNoMk0zMiAzaDFNMzQgM2gyTTM3IDNoMk00MSAzaDFNNDMgM2gzTTQ3IDNoMU0zIDRoMk05IDRoNU0xNSA0aDJNMTkgNGgxTTIxIDRoNk0yOCA0aDJNMzIgNGgxTTM0IDRoMk0zNyA0aDJNNDEgNGgxTTQzIDRoNU0zIDVoMk03IDVoMU05IDVoMk0xMyA1aDFNMTUgNWg1TTIxIDVoMk0yNCA1aDFNMjYgNWgxTTI4IDVoNE0zNCA1aDJNMzcgNWgyTTQxIDVoMU00MyA1aDJNNDYgNWgyTTQgNmg0TTkgNmgyTTEzIDZoMU0xNSA2aDJNMTkgNmgxTTIxIDZoMk0yNiA2aDFNMjggNmgyTTM0IDZoMk0zOCA2aDNNNDMgNmgyTTQ3IDZoMSIgLz4KPC9zdmc+" alt="Champion">',
+  7:'<span style="font-size:10px;color:var(--amber2);letter-spacing:1px">SILVERBULL</span>'
+};
+
+function stepsHTML(steps, slots){
+  if(!slots||slots<1)slots=2;
+  const html=[];
+  let slotsFilled=0;
+  let cycleStart=0; // index into steps where current cycle started
+  let totalElapsed=0; // minutes elapsed so far
+  let cycleNum=0;
+
+  for(let i=0;i<steps.length;i++){
+    const s=steps[i];
+
+    // Insert refill divider when slots fill up
+    if(slotsFilled>0 && slotsFilled%slots===0){
+      // This step starts a new cycle — insert divider before it
+      const cycleTime=steps.slice(cycleStart,i).reduce((a,x)=>a+x.ft,0);
+      totalElapsed+=cycleTime;
+      cycleNum++;
+      html.push(`<div class="rank-divider refill">
+        ${RANK_ICONS[slots]||''}
+        <span>Refill feeders (${slots} slot${slots!==1?'s':''})</span>
+        <span class="elapsed">+${fmtT(cycleTime)} · ${fmtT(totalElapsed)} total</span>
+      </div>`);
+      cycleStart=i;
+    }
+
     const chg=s.chg.map(c=>`<span class="sc ${c.cap?'cap':''}"><span class="sn">${c.stat}</span><span class="arr">→</span><span class="nv">${c.to}${c.cap?' ✓':''}</span></span>`).join('');
-    return`<div class="fs"><div class="fnum">${i+1}</div><div style="flex:1">
+    html.push(`<div class="fs"><div class="fnum">${i+1}</div><div style="flex:1">
       <div style="display:flex;align-items:center">${foodIcon(s.food)}<span style="color:var(--amber2);font-size:12px;font-weight:bold">${s.food}</span><span class="ttag">T${s.tier}</span><span style="color:var(--adim);font-size:10px;margin-left:6px">${fmtT(s.ft)}</span></div>
       <div style="margin-top:2px">${chg}</div>
       <div style="font-size:10px;color:var(--text3);margin-top:2px">deficit after: ${s.def} · next tier: ${getTier(Math.max(...s.after))}</div>
-    </div></div>`;
-  }).join('');
+    </div></div>`);
+    slotsFilled++;
+  }
+  return html.join('');
 }
 
 function runOpt(){
@@ -520,6 +566,7 @@ function _runOptCompute(d,st){
   const doneBtn=()=>{if(btn){btn.disabled=false;btn.textContent='Run Optimizer';}};
   const pathOpt=bfsOptimal(d.limits,d.maxes);
   const pathNoe=bfsNoEnergy(d.limits,d.maxes,d.levels);
+  const slots=parseInt(g('rank-sel')?.value||'2');
   if(!pathOpt){out.innerHTML='<div class="ab bad"><div class="at bad">No Solution</div>Could not find a valid feed path.</div>';return;}
 
   const{tot:tOpt,steps:sOpt}=calcTime(d.limits,d.maxes,pathOpt);
@@ -559,7 +606,7 @@ function _runOptCompute(d,st){
           <div><span class="path-label pl-opt">Optimal</span><h2 style="display:inline">Feed Path</h2></div>
           <span style="font-size:10px;color:var(--text3)">${pathOpt.length} feeds · ${fmtH(tOpt)} · ${tierSummary(pathOpt)}</span>
         </div>
-        <div class="rpb sy">${stepsHTML(sOpt)}</div>
+        <div class="rpb sy">${stepsHTML(sOpt,slots)}</div>
         ${sameOpts?'<div style="padding:8px 13px;font-size:11px;color:var(--text3);border-top:1px solid var(--border)">No-energy path is identical — leveling up does not change tier availability for this mount.</div>':''}
       </div>
       ${!sameOpts&&pathNoe?`<div class="rp" style="flex:1">
@@ -567,7 +614,7 @@ function _runOptCompute(d,st){
           <div><span class="path-label pl-noe">No Energy</span><h2 style="display:inline">Feed Path</h2></div>
           <span style="font-size:10px;color:var(--text3)">${pathNoe.length} feeds · ${fmtH(tNoe)} · fixed <span class="ttag">T${st.noeTier}</span></span>
         </div>
-        <div class="rpb sy">${stepsHTML(sNoe)}</div>
+        <div class="rpb sy">${stepsHTML(sNoe,slots)}</div>
       </div>`:''}
       <div class="rp" style="flex:1;min-width:220px">
         <div class="rph"><h2>Level-Up Plan</h2></div>
