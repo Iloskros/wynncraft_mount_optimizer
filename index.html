@@ -219,10 +219,11 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
     <pre id="export-preview" style="background:var(--bg3);border:1px solid var(--border);padding:12px;font-size:10px;color:var(--text2);max-height:260px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;margin:0;font-family:var(--mono);line-height:1.5"></pre>
   </div>
   <div id="export-submit-status" style="display:none;padding:8px 10px;font-size:11px;margin-bottom:10px;border-left:3px solid var(--green2);background:rgba(74,140,92,0.08);color:var(--green2)"></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn btnp" onclick="downloadExport()" style="flex:1">↓ Download to device</button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+    <button class="btn btnp" onclick="downloadExport()" style="flex:1">↓ Download my data (JSON)</button>
     <button class="btn" id="submit-btn" onclick="submitToPublic()" style="flex:1;border-color:var(--blue);color:var(--blue2)">↑ Submit breeding log publicly</button>
   </div>
+  <button class="btn" onclick="downloadDataset()" style="width:100%;border-color:var(--green);color:var(--green2)">↓ Download full community dataset (CSV)</button>
   <div style="margin-top:8px;font-size:10px;color:var(--text3)">
     Public submissions include only breeding records (no mount names or personal data). Data is visible to anyone at the public research page.
   </div>
@@ -269,6 +270,7 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
 
 <script>
 const SUBMIT_URL = 'https://script.google.com/macros/s/AKfycbwAlgCy2xsYPp9yUp5Q6wBV9H2zqg-E9FL0AhMEvNxNqFQMSl0UwVwJdMZLuCqOAo-TFg/exec';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSP9BiGD4lkQnk90aQh-3aDpzaN2GoFo5Wv0vidpQBX0IkMSgGvUhzQGCOyYL16lIB34odzNlf4-5YJ/pub?gid=0&single=true&output=csv';
 
 const SN=['Speed','Acceleration','Altitude','Energy','Handling','Toughness','Boost','Training'];
 const FT={
@@ -610,6 +612,11 @@ function downloadExport(){
   const a=document.createElement('a');
   a.href=uri;a.download='mount-data.json';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function downloadDataset(){
+  if(!SHEET_CSV_URL){showExportStatus('No dataset URL configured.','bad');return;}
+  window.open(SHEET_CSV_URL,'_blank');
 }
 
 async function submitToPublic(){
