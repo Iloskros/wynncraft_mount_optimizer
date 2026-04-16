@@ -535,7 +535,9 @@ function _runOptCompute(d,st){
     return Object.entries(tc).sort((a,b)=>+a[0]-+b[0]).map(([t,n])=>`${n}×<span class="ttag">T${t}</span>`).join(' + ');
   }
 
-  const sameOpts=pathNoe&&pathOpt.length===pathNoe.length;
+  // Paths are identical only if same food AND same tier at every step
+  const sameOpts=pathNoe&&pathOpt.length===pathNoe.length&&
+    pathOpt.every(([f,t],i)=>f===pathNoe[i][0]&&t===pathNoe[i][1]);
   const breedHtml=`<div class="ab ${st.canBreed?'good':''}"><div class="at ${st.canBreed?'good':''}">Breeding</div>${st.canBreed?`Ready. Avg ${st.avg.toFixed(3)} ≥ 20.0`:`Avg ${st.avg.toFixed(3)} — need ${160-st.tot} more pts.`}</div>`;
   const staHtml=`<div class="ab ${d.staCur<2?'bad':d.staCur>=lvCost?'good':''}"><div class="at ${d.staCur<2?'bad':d.staCur>=lvCost?'good':''}">Stamina</div>${d.staCur<2?`Only ${d.staCur} remaining — feed first to restore ~${st.restore}.`:lvPlan.length===0?'All stats leveled to current limits.':d.staCur>=lvCost?`${d.staCur} available · ${lvCost} needed · sufficient for all pending levels.`:`${d.staCur} available · ${lvCost} needed · ~${Math.ceil((lvCost-d.staCur)/Math.max(1,st.restore))} feeds to cover remaining.`}</div>`;
 
