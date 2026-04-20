@@ -394,6 +394,9 @@ function removeMount(id){
   mounts=mounts.filter(m=>m.id!==id);
   const el=g(`mc-${id}`);if(el)el.remove();
   if(!mounts.length)g('mc').innerHTML='<div class="empty"><div class="ei">◈</div>No mounts. Click "+ Add Mount".</div>';
+  const exportData={mounts:mounts.map(m=>getMD(m.id)),breedLog,exported:new Date().toISOString()};
+  _exportJson=JSON.stringify(exportData,null,'\t');
+  localStorage.setItem("wynn_mounts",_exportJson);
   updateSel();
 }
 
