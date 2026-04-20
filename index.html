@@ -174,7 +174,7 @@ select{background:var(--bg3);border:1px solid var(--border2);color:var(--text);f
   <div><h1>Mount Optimizer</h1><div class="hdr-sub">Feed Path · Level Strategy · Breeding Log</div></div>
   <div style="display:flex;gap:7px;align-items:center">
     <button class="btn" onclick="openExportModal()">Export JSON</button>
-    <button class="btn" onclick="importData()">Import JSON</button>
+    <button class="btn" onclick="importFile()">Import JSON</button>
     <button class="btn btnp" onclick="addMount()">+ Add Mount</button>
   </div>
 </div>
@@ -394,6 +394,9 @@ function removeMount(id){
   mounts=mounts.filter(m=>m.id!==id);
   const el=g(`mc-${id}`);if(el)el.remove();
   if(!mounts.length)g('mc').innerHTML='<div class="empty"><div class="ei">◈</div>No mounts. Click "+ Add Mount".</div>';
+  const exportData={mounts:mounts.map(m=>getMD(m.id)),breedLog,exported:new Date().toISOString()};
+  _exportJson=JSON.stringify(exportData,null,'\t');
+  localStorage.setItem("wynn_mounts",_exportJson);
   updateSel();
 }
 
@@ -465,6 +468,10 @@ function updSt(id){
     d.staCur<2?`<span class="bdg br">No stamina</span>`:`<span class="bdg bb">${d.staCur} stamina</span>`,
     st.need===0?`<span class="bdg bg">Fully maxed</span>`:`<span class="bdg bx">${st.need} pts needed</span>`,
   ].join('');
+
+  const exportData={mounts:mounts.map(m=>getMD(m.id)),breedLog,exported:new Date().toISOString()};
+  _exportJson=JSON.stringify(exportData,null,'\t');
+  localStorage.setItem("wynn_mounts",_exportJson);
 }
 
 function selOpt(id){
@@ -601,6 +608,7 @@ let _exportJson='';
 function openExportModal(){
   const d={mounts:mounts.map(m=>getMD(m.id)),breedLog,exported:new Date().toISOString()};
   _exportJson=JSON.stringify(d,null,2);
+  localStorage.setItem("wynn_mounts",_exportJson);
   g('export-preview').textContent=_exportJson;
   g('export-submit-status').style.display='none';
   const sb=g('submit-btn');
@@ -652,31 +660,34 @@ function showExportStatus(msg,type){
   el.style.color=type==='good'?'var(--green2)':type==='bad'?'var(--red2)':'var(--amber2)';
 }
 
-function importData(){
+function importFile(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.json,.txt';
   inp.onchange=e=>{const f=e.target.files[0];if(!f)return;
     const r=new FileReader();r.onload=ev=>{
-      try{const d=JSON.parse(ev.target.result);
-        if(d.breedLog){breedLog=d.breedLog;renderBreedLog();}
-        if(d.mounts){
-          const c=g('mc');if(c.querySelector('.empty'))c.innerHTML='';
-          d.mounts.forEach(m=>{
-            const id=++mid;mounts.push({id});
-            const div=document.createElement('div');div.innerHTML=mountHTML(id);c.appendChild(div.firstChild);
-            wireMount(id);
-            g(`${id}-nm`).value=m.name||`Mount ${id}`;
-            for(let i=0;i<8;i++){
-              g(`${id}-lv-${i}`).value=m.levels?.[i]??1;
-              g(`${id}-lm-${i}`).value=m.limits?.[i]??10;
-              g(`${id}-mx-${i}`).value=m.maxes?.[i]??30;
-            }
-            g(`${id}-sc`).value=m.staCur??200;
-            g(`${id}-sm`).value=m.staMax??200;
-            updSt(id);
-          });updateSel();
-        }
-      }catch(err){alert('Could not parse file: '+err.message);}
+      try{importData(ev.target.result);updateSel();}
+      catch(err){alert('Could not parse file: '+err.message);}
     };r.readAsText(f);};inp.click();
+}
+function importData(data){
+  const d=JSON.parse(data);
+  if(d.breedLog){breedLog=d.breedLog;renderBreedLog();}
+  if(d.mounts){
+    const c=g('mc');if(c.querySelector('.empty'))c.innerHTML='';
+    d.mounts.forEach(m=>{
+      const id=++mid;mounts.push({id});
+      const div=document.createElement('div');div.innerHTML=mountHTML(id);c.appendChild(div.firstChild);
+      wireMount(id);
+      g(`${id}-nm`).value=m.name||`Mount ${id}`;
+      for(let i=0;i<8;i++){
+        g(`${id}-lv-${i}`).value=m.levels?.[i]??1;
+        g(`${id}-lm-${i}`).value=m.limits?.[i]??10;
+        g(`${id}-mx-${i}`).value=m.maxes?.[i]??30;
+      }
+      g(`${id}-sc`).value=m.staCur??200;
+      g(`${id}-sm`).value=m.staMax??200;
+      updSt(id);
+    });updateSel();
+  }
 }
 
 // Breeding
@@ -702,6 +713,9 @@ function saveBE(){
     saMax:+g('bsam').value||0,saRem:+g('bsar').value||0,sbMax:+g('bsbm').value||0,sbRem:+g('bsbr').value||0,
     scMax:+g('bscm').value||0,scRem:+g('bscr').value||0,notes:g('bno').value});
   closeBM();renderBreedLog();
+  const exportData={mounts:mounts.map(m=>getMD(m.id)),breedLog,exported:new Date().toISOString()};
+  _exportJson=JSON.stringify(exportData,null,'\t');
+  localStorage.setItem("wynn_mounts",_exportJson);
 }
 
 function renderBreedLog(){
@@ -855,7 +869,9 @@ function foodIcon(name){
   return '<span style="display:inline-block;width:32px;height:32px;background:url('+SPRITE+') '+x+'px '+y+'px/512px 512px;image-rendering:pixelated;vertical-align:middle;flex-shrink:0;margin-right:4px"></span>';
 }
 
-addMount();
+const localData=localStorage.getItem("wynn_mounts");
+if(localData)importData(localData)
+else addMount();
 </script>
 </body>
 </html>
